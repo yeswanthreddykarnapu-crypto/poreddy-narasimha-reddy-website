@@ -1,0 +1,75 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html {
+    scroll-behavior: smooth;
+    color: #12203a;
+    background-color: #f5f3ee;
+  }
+
+  body {
+    background-color: #f5f3ee;
+    color: #12203a;
+    font-family: 'Poppins', 'Noto Sans Telugu', system-ui, sans-serif;
+  }
+
+  html[lang="te"] body {
+    font-family: 'Noto Sans Telugu', 'Poppins', system-ui, sans-serif;
+    line-height: 1.75;
+  }
+
+  /* Accessible focus rings */
+  :focus-visible {
+    outline: 2px solid #1a7a4a;
+    outline-offset: 2px;
+  }
+
+  /* Section anchor scroll offset to keep sticky header + ticker from obscuring headings */
+  section {
+    scroll-margin-top: 6.75rem;
+  }
+}
+
+@layer utilities {
+  .stripe {
+    height: 4px;
+    background: linear-gradient(90deg, #2f5bb7 33.3%, #ffffff 33.3% 66.6%, #1a7a4a 66.6%);
+  }
+
+  .subtle-border {
+    border-color: #e2e8f0;
+  }
+}
+
+/* Continuous Infinite Marquee Ticker (Right to Left) */
+@keyframes marquee-rtl {
+  0% {
+    transform: translate3d(0%, 0, 0);
+  }
+  100% {
+    transform: translate3d(-50%, 0, 0);
+  }
+}
+
+.animate-ticker-rtl {
+  display: flex !important;
+  width: max-content !important;
+  animation: marquee-rtl 24s linear infinite !important;
+  will-change: transform;
+}
+
+.animate-ticker-rtl:hover {
+  animation-play-state: paused;
+}
+
+/* Reduced motion preference (exempt ticker) */
+@media (prefers-reduced-motion: reduce) {
+  *:not(.animate-ticker-rtl), ::before, ::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}

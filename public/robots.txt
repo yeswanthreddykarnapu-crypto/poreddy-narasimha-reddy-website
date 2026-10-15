@@ -1,0 +1,10 @@
+# Preview Environment - Disallow indexing during review and staging
+User-agent: *
+Disallow: /
+
+# PRODUCTION INSTRUCTION:
+# When published to https://voteforporeddynarasimhareddy.com,
+# replace with:
+# User-agent: *
+# Allow: /
+# Sitemap: https://voteforporeddynarasimhareddy.com/sitemap.xml
