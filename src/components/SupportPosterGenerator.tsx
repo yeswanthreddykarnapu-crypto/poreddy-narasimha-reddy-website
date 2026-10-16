@@ -21,11 +21,18 @@ interface SupportPosterGeneratorProps {
   lang: 'en' | 'te';
 }
 
-// Target export canvas dimensions (exact 1080x1080 square)
+// Target export canvas dimensions (exact 1080x1080 square for highest quality social sharing)
 const CANVAS_SIZE = 1080;
-const CIRCLE_CENTER_X = 540;
-const CIRCLE_CENTER_Y = 485;
-const CIRCLE_RADIUS = 265; // Diameter = 530px
+
+// Coordinates of the central circular opening in the official campaign frame:
+// In 1024x1024: Center is (511, 448), Radius is 238
+// Scaled to 1080x1080 (1080 / 1024 = 1.0546875):
+// Center X = 511 * 1080 / 1024 = 539.0
+// Center Y = 448 * 1080 / 1024 = 472.5
+// Radius = 238 * 1080 / 1024 = 251.0 (Diameter = 502px)
+const CIRCLE_CENTER_X = 539;
+const CIRCLE_CENTER_Y = 473;
+const CIRCLE_RADIUS = 251;
 
 export const SupportPosterGenerator: React.FC<SupportPosterGeneratorProps> = ({ lang }) => {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
@@ -50,25 +57,17 @@ export const SupportPosterGenerator: React.FC<SupportPosterGeneratorProps> = ({ 
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const [isExporting, setIsExporting] = useState<boolean>(false);
 
-  // Pre-loaded campaign assets for canvas rendering
-  const fanLogoRef = useRef<HTMLImageElement | null>(null);
-  const candidatePhotoRef = useRef<HTMLImageElement | null>(null);
+  // Pre-loaded official campaign poster frame asset
+  const frameImageRef = useRef<HTMLImageElement | null>(null);
 
-  // Pre-load assets
+  // Pre-load the official campaign poster frame
   useEffect(() => {
-    const fanImg = new Image();
-    fanImg.crossOrigin = 'anonymous';
-    fanImg.src = '/images/ysrcp-fan-symbol.png';
-    fanImg.onload = () => {
-      fanLogoRef.current = fanImg;
-      drawCanvas();
-    };
-
-    const candImg = new Image();
-    candImg.crossOrigin = 'anonymous';
-    candImg.src = '/images/poreddy-narasimha-reddy-namaste.jpg';
-    candImg.onload = () => {
-      candidatePhotoRef.current = candImg;
+    const frameImg = new Image();
+    frameImg.crossOrigin = 'anonymous';
+    // Use the transparent-window PNG version of the official frame uploaded by user
+    frameImg.src = '/images/official-campaign-poster-frame.png';
+    frameImg.onload = () => {
+      frameImageRef.current = frameImg;
       drawCanvas();
     };
   }, []);
@@ -90,107 +89,14 @@ export const SupportPosterGenerator: React.FC<SupportPosterGeneratorProps> = ({ 
       // 1. Clear Canvas
       ctx.clearRect(0, 0, CANVAS_SIZE, CANVAS_SIZE);
 
-      // 2. Background: Deep Navy Campaign Gradient (#091e42 to #0f2a5a)
-      const bgGrad = ctx.createLinearGradient(0, 0, 0, CANVAS_SIZE);
-      bgGrad.addColorStop(0, '#091e42');
-      bgGrad.addColorStop(0.3, '#0b2450');
-      bgGrad.addColorStop(0.7, '#0f2a5a');
-      bgGrad.addColorStop(1, '#07162e');
-      ctx.fillStyle = bgGrad;
-      ctx.fillRect(0, 0, CANVAS_SIZE, CANVAS_SIZE);
-
-      // 2b. Subtle Ambient Radial Lights (Navy Blue + Emerald Glow)
-      const radialGlow = ctx.createRadialGradient(
-        CIRCLE_CENTER_X,
-        CIRCLE_CENTER_Y,
-        50,
-        CIRCLE_CENTER_X,
-        CIRCLE_CENTER_Y,
-        520
-      );
-      radialGlow.addColorStop(0, 'rgba(26, 122, 74, 0.22)');
-      radialGlow.addColorStop(0.5, 'rgba(47, 91, 183, 0.15)');
-      radialGlow.addColorStop(1, 'rgba(0, 0, 0, 0)');
-      ctx.fillStyle = radialGlow;
-      ctx.fillRect(0, 0, CANVAS_SIZE, CANVAS_SIZE);
-
-      // 3. Top & Bottom YSRCP Tricolor Stripes (12px each)
-      const drawTricolorStripe = (y: number, height: number) => {
-        const stripeGrad = ctx.createLinearGradient(0, 0, CANVAS_SIZE, 0);
-        stripeGrad.addColorStop(0, '#2f5bb7');
-        stripeGrad.addColorStop(0.333, '#2f5bb7');
-        stripeGrad.addColorStop(0.333, '#ffffff');
-        stripeGrad.addColorStop(0.666, '#ffffff');
-        stripeGrad.addColorStop(0.666, '#1a7a4a');
-        stripeGrad.addColorStop(1, '#1a7a4a');
-        ctx.fillStyle = stripeGrad;
-        ctx.fillRect(0, y, CANVAS_SIZE, height);
-      };
-      drawTricolorStripe(0, 14);
-      drawTricolorStripe(CANVAS_SIZE - 14, 14);
-
-      // 4. Top Header Content (Safe Area 14px to 190px)
-      // Top Organization Bar
-      ctx.textAlign = 'center';
-      ctx.textBaseline = 'middle';
-
-      // Party Badge Pill
-      const pillWidth = 520;
-      const pillHeight = 36;
-      const pillX = CIRCLE_CENTER_X - pillWidth / 2;
-      const pillY = 32;
-
-      ctx.save();
-      ctx.fillStyle = 'rgba(255, 255, 255, 0.08)';
-      ctx.strokeStyle = 'rgba(52, 211, 153, 0.45)';
-      ctx.lineWidth = 1.5;
-      ctx.beginPath();
-      ctx.roundRect(pillX, pillY, pillWidth, pillHeight, 18);
-      ctx.fill();
-      ctx.stroke();
-
-      ctx.fillStyle = '#34d399';
-      ctx.font = '700 16px "Noto Sans Telugu", Poppins, sans-serif';
-      ctx.fillText(
-        'వైఎస్సార్ కాంగ్రెస్ పార్టీ • ప్రొద్దుటూరు',
-        CIRCLE_CENTER_X,
-        pillY + pillHeight / 2 + 1
-      );
-      ctx.restore();
-
-      // Main Upper Campaign Slogan: "VOTE FOR CHANGE"
-      ctx.save();
-      ctx.shadowColor = 'rgba(0, 0, 0, 0.5)';
-      ctx.shadowBlur = 8;
-      ctx.shadowOffsetY = 3;
+      // 2. Base Background underneath user photo
       ctx.fillStyle = '#ffffff';
-      ctx.font = '900 46px Poppins, "Noto Sans Telugu", sans-serif';
-      ctx.letterSpacing = '3px';
-      ctx.fillText('VOTE FOR CHANGE', CIRCLE_CENTER_X, 106);
-      ctx.restore();
+      ctx.fillRect(0, 0, CANVAS_SIZE, CANVAS_SIZE);
 
-      // Upper Telugu Motto: "మన ప్రొద్దుటూరు — మన బాధ్యత"
-      ctx.save();
-      ctx.fillStyle = '#34d399';
-      ctx.font = '800 24px "Noto Sans Telugu", Poppins, sans-serif';
-      ctx.fillText('మన ప్రొద్దుటూరు — మన బాధ్యత', CIRCLE_CENTER_X, 152);
-      ctx.restore();
-
-      // 5. Circular Photo Frame & Image Clipping Layer
-      // Circular Opening at (CIRCLE_CENTER_X, CIRCLE_CENTER_Y), radius CIRCLE_RADIUS
-
-      // Outer glow of the frame
+      // 3. User Photo Layer (Clipped to the circular frame opening)
       ctx.save();
       ctx.beginPath();
-      ctx.arc(CIRCLE_CENTER_X, CIRCLE_CENTER_Y, CIRCLE_RADIUS + 16, 0, Math.PI * 2);
-      ctx.fillStyle = 'rgba(26, 122, 74, 0.25)';
-      ctx.fill();
-      ctx.restore();
-
-      // Clip visitor photo inside genuine circular opening
-      ctx.save();
-      ctx.beginPath();
-      ctx.arc(CIRCLE_CENTER_X, CIRCLE_CENTER_Y, CIRCLE_RADIUS, 0, Math.PI * 2);
+      ctx.arc(CIRCLE_CENTER_X, CIRCLE_CENTER_Y, CIRCLE_RADIUS + 2, 0, Math.PI * 2);
       ctx.clip();
 
       if (userImage) {
@@ -205,7 +111,7 @@ export const SupportPosterGenerator: React.FC<SupportPosterGeneratorProps> = ({ 
         ctx.drawImage(userImage, drawX, drawY, drawWidth, drawHeight);
       } else if (!isExportMode) {
         // Interactive Placeholder inside circle (ONLY in preview mode, NEVER in exported poster)
-        ctx.fillStyle = 'rgba(15, 42, 90, 0.85)';
+        ctx.fillStyle = '#0f2a5a';
         ctx.fillRect(
           CIRCLE_CENTER_X - CIRCLE_RADIUS,
           CIRCLE_CENTER_Y - CIRCLE_RADIUS,
@@ -213,27 +119,24 @@ export const SupportPosterGenerator: React.FC<SupportPosterGeneratorProps> = ({ 
           CIRCLE_RADIUS * 2
         );
 
-        // Circular dash guide
-        ctx.strokeStyle = 'rgba(52, 211, 153, 0.6)';
+        // Circular dashed guide
+        ctx.strokeStyle = 'rgba(52, 211, 153, 0.7)';
         ctx.lineWidth = 3;
         ctx.setLineDash([12, 10]);
         ctx.beginPath();
-        ctx.arc(CIRCLE_CENTER_X, CIRCLE_CENTER_Y, CIRCLE_RADIUS - 20, 0, Math.PI * 2);
+        ctx.arc(CIRCLE_CENTER_X, CIRCLE_CENTER_Y, CIRCLE_RADIUS - 18, 0, Math.PI * 2);
         ctx.stroke();
         ctx.setLineDash([]);
 
-        // Camera Icon symbol drawn cleanly
+        // Camera Icon
         ctx.fillStyle = '#34d399';
         const iconY = CIRCLE_CENTER_Y - 40;
-        // Camera body
         ctx.beginPath();
         ctx.roundRect(CIRCLE_CENTER_X - 44, iconY - 26, 88, 62, 12);
         ctx.fill();
-        // Camera top flash bump
         ctx.beginPath();
         ctx.roundRect(CIRCLE_CENTER_X - 20, iconY - 40, 40, 18, 5);
         ctx.fill();
-        // Camera lens cutout
         ctx.fillStyle = '#0f2a5a';
         ctx.beginPath();
         ctx.arc(CIRCLE_CENTER_X, iconY + 5, 22, 0, Math.PI * 2);
@@ -244,195 +147,32 @@ export const SupportPosterGenerator: React.FC<SupportPosterGeneratorProps> = ({ 
         ctx.fill();
 
         // Placeholder Text
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
         ctx.fillStyle = '#ffffff';
         ctx.font = '700 24px "Noto Sans Telugu", Poppins, sans-serif';
-        ctx.fillText('మీ ఫొటోను ఇక్కడ జోడించండి', CIRCLE_CENTER_X, CIRCLE_CENTER_Y + 50);
+        ctx.fillText('మీ ఫొటోను ఇక్కడ జోడించండి', CIRCLE_CENTER_X, CIRCLE_CENTER_Y + 46);
 
         ctx.fillStyle = '#94b5f0';
         ctx.font = '500 16px Poppins, sans-serif';
-        ctx.fillText('Click to Upload / Take Photo', CIRCLE_CENTER_X, CIRCLE_CENTER_Y + 84);
+        ctx.fillText('Click to Upload / Take Photo', CIRCLE_CENTER_X, CIRCLE_CENTER_Y + 78);
       }
       ctx.restore();
 
-      // 6. Draw Layered Circular Border Rings OVER the photo
-      // Outer Emerald Ring (14px)
-      ctx.save();
-      ctx.beginPath();
-      ctx.arc(CIRCLE_CENTER_X, CIRCLE_CENTER_Y, CIRCLE_RADIUS + 7, 0, Math.PI * 2);
-      ctx.strokeStyle = '#1a7a4a';
-      ctx.lineWidth = 14;
-      ctx.stroke();
-
-      // Bright Green Highlight Ring (4px)
-      ctx.beginPath();
-      ctx.arc(CIRCLE_CENTER_X, CIRCLE_CENTER_Y, CIRCLE_RADIUS + 14, 0, Math.PI * 2);
-      ctx.strokeStyle = '#34d399';
-      ctx.lineWidth = 4;
-      ctx.stroke();
-
-      // Crisp White Inner Ring (6px)
-      ctx.beginPath();
-      ctx.arc(CIRCLE_CENTER_X, CIRCLE_CENTER_Y, CIRCLE_RADIUS, 0, Math.PI * 2);
-      ctx.strokeStyle = '#ffffff';
-      ctx.lineWidth = 6;
-      ctx.stroke();
-      ctx.restore();
-
-      // 7. Decorative Badges Overlapping Frame
-      // A. Candidate Portrait Stamp (Top-Left of frame)
-      if (candidatePhotoRef.current) {
-        const badgeX = CIRCLE_CENTER_X - CIRCLE_RADIUS + 15;
-        const badgeY = CIRCLE_CENTER_Y - CIRCLE_RADIUS + 25;
-        const badgeR = 64;
-
-        ctx.save();
-        // Glow
-        ctx.beginPath();
-        ctx.arc(badgeX, badgeY, badgeR + 5, 0, Math.PI * 2);
-        ctx.fillStyle = 'rgba(52, 211, 153, 0.4)';
-        ctx.fill();
-
-        // White border
-        ctx.beginPath();
-        ctx.arc(badgeX, badgeY, badgeR, 0, Math.PI * 2);
-        ctx.fillStyle = '#ffffff';
-        ctx.fill();
-        ctx.strokeStyle = '#1a7a4a';
-        ctx.lineWidth = 4;
-        ctx.stroke();
-
-        // Candidate photo clipped
-        ctx.beginPath();
-        ctx.arc(badgeX, badgeY, badgeR - 4, 0, Math.PI * 2);
-        ctx.clip();
-        ctx.drawImage(
-          candidatePhotoRef.current,
-          badgeX - badgeR + 4,
-          badgeY - badgeR + 4,
-          (badgeR - 4) * 2,
-          (badgeR - 4) * 2
-        );
-        ctx.restore();
-
-        // Mini banner ribbon on candidate badge
-        ctx.save();
-        ctx.fillStyle = '#0f2a5a';
-        ctx.strokeStyle = '#34d399';
-        ctx.lineWidth = 1.5;
-        ctx.beginPath();
-        ctx.roundRect(badgeX - 60, badgeY + badgeR - 16, 120, 24, 12);
-        ctx.fill();
-        ctx.stroke();
-
-        ctx.fillStyle = '#34d399';
-        ctx.font = '800 11px "Noto Sans Telugu", Poppins, sans-serif';
-        ctx.fillText('నరసింహారెడ్డి', badgeX, badgeY + badgeR - 3);
-        ctx.restore();
+      // 4. Draw Official Campaign Poster Frame on TOP
+      // The frame already has the full artwork:
+      // - "VOTE FOR CHANGE" with YSRCP flag
+      // - "మన ప్రొద్దుటూరు — మన బాధ్యత"
+      // - Sri Poreddy Narasimha Reddy on the left
+      // - Sri Y.S. Jagan Mohan Reddy on the right
+      // - Official YSRCP fan logo badge at the bottom of the circle
+      // - "VOTE FOR POREDDY NARASIMHA REDDY"
+      // - "శ్రీ పోరెడ్డి నరసింహారెడ్డి — ప్రొద్దుటూరు మున్సిపల్ చైర్మన్ అభ్యర్థి"
+      // - "★ మార్పు కోసం పోరెడ్డి గారికే నా మద్దతు ★"
+      // - "voteforporeddynarasimhareddy.com"
+      if (frameImageRef.current) {
+        ctx.drawImage(frameImageRef.current, 0, 0, CANVAS_SIZE, CANVAS_SIZE);
       }
-
-      // B. Official YSRCP Fan Symbol Emblem Badge (Bottom-Right of frame)
-      const fanBadgeX = CIRCLE_CENTER_X + CIRCLE_RADIUS - 20;
-      const fanBadgeY = CIRCLE_CENTER_Y + CIRCLE_RADIUS - 30;
-      const fanBadgeR = 68;
-
-      ctx.save();
-      // Glow
-      ctx.beginPath();
-      ctx.arc(fanBadgeX, fanBadgeY, fanBadgeR + 6, 0, Math.PI * 2);
-      ctx.fillStyle = 'rgba(26, 122, 74, 0.4)';
-      ctx.fill();
-
-      // White circle background
-      ctx.beginPath();
-      ctx.arc(fanBadgeX, fanBadgeY, fanBadgeR, 0, Math.PI * 2);
-      ctx.fillStyle = '#ffffff';
-      ctx.fill();
-      ctx.strokeStyle = '#22c55e';
-      ctx.lineWidth = 4;
-      ctx.stroke();
-
-      // Fan Logo
-      if (fanLogoRef.current) {
-        ctx.drawImage(
-          fanLogoRef.current,
-          fanBadgeX - 44,
-          fanBadgeY - 48,
-          88,
-          68
-        );
-      }
-
-      // Text underneath fan symbol
-      ctx.fillStyle = '#0f2a5a';
-      ctx.font = '900 13px Poppins, sans-serif';
-      ctx.fillText('YSRCP', fanBadgeX, fanBadgeY + 28);
-      ctx.fillStyle = '#1a7a4a';
-      ctx.font = '800 13px "Noto Sans Telugu", sans-serif';
-      ctx.fillText('ఫ్యాన్ గుర్తు', fanBadgeX, fanBadgeY + 44);
-      ctx.restore();
-
-      // 8. Lower Campaign Text & Candidate Branding (780px to 1060px)
-      // Primary Call to Action: "VOTE FOR POREDDY NARASIMHA REDDY"
-      ctx.save();
-      ctx.shadowColor = 'rgba(0, 0, 0, 0.6)';
-      ctx.shadowBlur = 10;
-      ctx.shadowOffsetY = 4;
-      ctx.fillStyle = '#ffffff';
-      ctx.font = '900 44px Poppins, "Noto Sans Telugu", sans-serif';
-      ctx.letterSpacing = '1px';
-      ctx.fillText('VOTE FOR POREDDY NARASIMHA REDDY', CIRCLE_CENTER_X, 820);
-      ctx.restore();
-
-      // Telugu Candidate Full Name
-      ctx.save();
-      ctx.shadowColor = 'rgba(0, 0, 0, 0.5)';
-      ctx.shadowBlur = 8;
-      ctx.fillStyle = '#34d399';
-      ctx.font = '900 40px "Noto Sans Telugu", Poppins, sans-serif';
-      ctx.fillText('శ్రీ పోరెడ్డి నరసింహారెడ్డి', CIRCLE_CENTER_X, 880);
-      ctx.restore();
-
-      // Official Candidate Designation
-      ctx.save();
-      ctx.fillStyle = '#e2e8f0';
-      ctx.font = '700 24px "Noto Sans Telugu", Poppins, sans-serif';
-      ctx.fillText(
-        'ప్రొద్దుటూరు మున్సిపల్ చైర్పర్సన్ అభ్యర్థి',
-        CIRCLE_CENTER_X,
-        930
-      );
-      ctx.restore();
-
-      // Supporter declaration pill
-      ctx.save();
-      const supportWidth = 460;
-      const supportHeight = 38;
-      const supportX = CIRCLE_CENTER_X - supportWidth / 2;
-      const supportY = 964;
-
-      ctx.fillStyle = 'rgba(26, 122, 74, 0.35)';
-      ctx.strokeStyle = '#22c55e';
-      ctx.lineWidth = 1.5;
-      ctx.beginPath();
-      ctx.roundRect(supportX, supportY, supportWidth, supportHeight, 19);
-      ctx.fill();
-      ctx.stroke();
-
-      ctx.fillStyle = '#ffffff';
-      ctx.font = '700 17px "Noto Sans Telugu", Poppins, sans-serif';
-      ctx.fillText(
-        '★ మార్పు కోసం పోరెడ్డి గారికి నా మద్దతు ★',
-        CIRCLE_CENTER_X,
-        supportY + supportHeight / 2 + 1
-      );
-      ctx.restore();
-
-      // Official Website Domain Footer
-      ctx.save();
-      ctx.fillStyle = '#94b5f0';
-      ctx.font = '600 16px Poppins, sans-serif';
-      ctx.fillText('voteforporeddynarasimhareddy.com', CIRCLE_CENTER_X, 1030);
-      ctx.restore();
     },
     [userImage, zoom, pan, getBaseScale]
   );
@@ -479,19 +219,17 @@ export const SupportPosterGenerator: React.FC<SupportPosterGeneratorProps> = ({ 
         setPan({ x: 0, y: 0 });
         setSuccessMessage(
           lang === 'te'
-            ? 'ఫొటో విజయవంతంగా జోడించబడింది! అవసరమైతే సర్దుబాటు చేయండి.'
-            : 'Photo added successfully! Adjust position and zoom if desired.'
+            ? 'ఫొటో విజయవంతంగా జోడించబడింది! జూమ్ మరియు స్థానాన్ని సర్దుబాటు చేయవచ్చు.'
+            : 'Photo added! You can now adjust zoom and position.'
         );
       };
       img.src = event.target?.result as string;
     };
     reader.readAsDataURL(file);
-
-    // Reset input so re-selecting same file triggers change
     e.target.value = '';
   };
 
-  // Drag handlers for mouse and touch repositioning
+  // Drag and Reposition Handlers (Mouse & Touch)
   const handleMouseDown = (e: React.MouseEvent<HTMLCanvasElement>) => {
     if (!userImage) {
       fileInputRef.current?.click();
@@ -599,13 +337,13 @@ export const SupportPosterGenerator: React.FC<SupportPosterGeneratorProps> = ({ 
         videoRef.current.srcObject = stream;
       }
     } catch (err) {
-      console.error('Camera error:', err);
+      console.error('Camera access error:', err);
       setErrorMessage(
         lang === 'te'
-          ? 'కెమెరా అనుమతి లభించలేదు. దయచేసి బ్రౌజర్ సెట్టింగ్స్‌లో కెమెరాను అనుమతించండి లేదా ఫొటో అప్‌లోడ్ చేయండి.'
-          : 'Camera access denied or unavailable. Please enable permissions or upload a file.'
+          ? 'కెమెరా తెరవడంలో సమస్య ఏర్పడింది. దయచేసి బ్రౌజర్ అనుమతులను తనిఖీ చేయండి లేదా ఫొటో అప్‌లోడ్ ఆప్షన్ ఉపయోగించండి.'
+          : 'Could not access camera. Please check permissions or use photo upload.'
       );
-      setIsCameraOpen(false);
+      fileInputRef.current?.click();
     }
   };
 
@@ -622,19 +360,18 @@ export const SupportPosterGenerator: React.FC<SupportPosterGeneratorProps> = ({ 
     if (!video) return;
 
     const tempCanvas = document.createElement('canvas');
-    tempCanvas.width = video.videoWidth || 640;
-    tempCanvas.height = video.videoHeight || 480;
+    tempCanvas.width = video.videoWidth || 720;
+    tempCanvas.height = video.videoHeight || 720;
     const ctx = tempCanvas.getContext('2d');
     if (!ctx) return;
 
-    // Flip horizontally if front camera for natural mirror feeling
     if (cameraFacing === 'user') {
       ctx.translate(tempCanvas.width, 0);
       ctx.scale(-1, 1);
     }
 
     ctx.drawImage(video, 0, 0, tempCanvas.width, tempCanvas.height);
-    const dataUrl = tempCanvas.toDataURL('image/jpeg', 0.95);
+    const dataUrl = tempCanvas.toDataURL('image/png');
 
     const img = new Image();
     img.onload = () => {
@@ -644,7 +381,7 @@ export const SupportPosterGenerator: React.FC<SupportPosterGeneratorProps> = ({ 
       stopCamera();
       setSuccessMessage(
         lang === 'te'
-          ? 'కెమెరాతో ఫొటో విజయవంతంగా తీయబడింది!'
+          ? 'కెమెరా ద్వారా ఫొటో విజయవంతంగా తీయబడింది!'
           : 'Photo captured successfully!'
       );
     };
@@ -665,7 +402,7 @@ export const SupportPosterGenerator: React.FC<SupportPosterGeneratorProps> = ({ 
     setSuccessMessage(null);
 
     try {
-      // Ensure canvas is drawn in export mode (clean without any editor placeholder)
+      // Ensure canvas is drawn in export mode
       drawCanvas(true);
 
       const canvas = canvasRef.current;
@@ -698,11 +435,9 @@ export const SupportPosterGenerator: React.FC<SupportPosterGeneratorProps> = ({ 
               : 'Poster shared successfully!'
           );
           setIsExporting(false);
-          // Restore canvas for preview
           drawCanvas(false);
           return;
-        } catch (shareErr) {
-          // If user cancels share sheet, fall back to standard download
+        } catch {
           console.log('Share dismissed, triggering file download');
         }
       }
@@ -731,7 +466,6 @@ export const SupportPosterGenerator: React.FC<SupportPosterGeneratorProps> = ({ 
       );
     } finally {
       setIsExporting(false);
-      // Restore canvas preview
       drawCanvas(false);
     }
   };
@@ -874,7 +608,7 @@ export const SupportPosterGenerator: React.FC<SupportPosterGeneratorProps> = ({ 
                         ? 'ఫొటో మార్చండి'
                         : 'Change Photo'
                       : lang === 'te'
-                      ? 'ఫొటో అప్లోడ్ చేయండి'
+                      ? 'ఫొటో అప్‌లోడ్ చేయండి'
                       : 'Upload Photo'}
                   </span>
                 </button>
@@ -975,7 +709,7 @@ export const SupportPosterGenerator: React.FC<SupportPosterGeneratorProps> = ({ 
                 ) : (
                   <>
                     <Download className="w-5 h-5" />
-                    <span>{lang === 'te' ? 'మీ పోస్టర్ను డౌన్లోడ్ చేసుకోండి' : 'Download Your Poster (1080p)'}</span>
+                    <span>{lang === 'te' ? 'మీ పోస్టర్‌ను డౌన్‌లోడ్ చేసుకోండి' : 'Download Your Poster (1080p)'}</span>
                   </>
                 )}
               </button>
@@ -985,7 +719,7 @@ export const SupportPosterGenerator: React.FC<SupportPosterGeneratorProps> = ({ 
                 <ShieldCheck className="w-4 h-4 text-civicGreen shrink-0" />
                 <span>
                   {lang === 'te'
-                    ? 'మీ ఫొటో మీ డివైస్లోనే ప్రాసెస్ అవుతుంది. సర్వర్లో సేవ్ చేయబడదు.'
+                    ? 'మీ ఫొటో మీ డివైస్‌లోనే ప్రాసెస్ అవుతుంది. సర్వర్లో సేవ్ చేయబడదు.'
                     : 'Your photo is processed locally on your device and is never uploaded or saved to our servers.'}
                 </span>
               </div>
