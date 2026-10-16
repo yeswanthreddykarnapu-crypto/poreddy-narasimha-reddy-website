@@ -1,12 +1,58 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
-        xmlns:xhtml="http://www.w3.org/1999/xhtml">
+        xmlns:xhtml="http://www.w3.org/1999/xhtml"
+        xmlns:image="http://www.google.com/schemas/sitemap-image/1.1">
   <url>
     <loc>https://voteforporeddynarasimhareddy.com/</loc>
-    <lastmod>2026-10-15</lastmod>
-    <changefreq>monthly</changefreq>
+    <lastmod>2026-10-16</lastmod>
+    <changefreq>daily</changefreq>
     <priority>1.0</priority>
-    <xhtml:link rel="alternate" hreflang="en" href="https://voteforporeddynarasimhareddy.com/?lang=en"/>
-    <xhtml:link rel="alternate" hreflang="te" href="https://voteforporeddynarasimhareddy.com/?lang=te"/>
+    <xhtml:link rel="alternate" hreflang="te" href="https://voteforporeddynarasimhareddy.com/?lang=te" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://voteforporeddynarasimhareddy.com/?lang=en" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://voteforporeddynarasimhareddy.com/" />
+    <image:image>
+      <image:loc>https://voteforporeddynarasimhareddy.com/images/poreddy-with-ys-jagan-hero.jpg</image:loc>
+      <image:title>Sri Poreddy Narasimha Reddy with Sri Y.S. Jagan Mohan Reddy - Proddatur Campaign</image:title>
+    </image:image>
+    <image:image>
+      <image:loc>https://voteforporeddynarasimhareddy.com/images/official-campaign-poster-frame.jpg</image:loc>
+      <image:title>Vote for Poreddy Narasimha Reddy - Official Campaign Poster Frame</image:title>
+    </image:image>
+  </url>
+  <url>
+    <loc>https://voteforporeddynarasimhareddy.com/#support-poster</loc>
+    <lastmod>2026-10-16</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+  </url>
+  <url>
+    <loc>https://voteforporeddynarasimhareddy.com/#priorities</loc>
+    <lastmod>2026-10-16</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.85</priority>
+  </url>
+  <url>
+    <loc>https://voteforporeddynarasimhareddy.com/#about</loc>
+    <lastmod>2026-10-16</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://voteforporeddynarasimhareddy.com/#career</loc>
+    <lastmod>2026-10-16</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://voteforporeddynarasimhareddy.com/#foundation</loc>
+    <lastmod>2026-10-16</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://voteforporeddynarasimhareddy.com/#gallery</loc>
+    <lastmod>2026-10-16</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
   </url>
 </urlset>

@@ -1,10 +1,7 @@
-# Preview Environment - Disallow indexing during review and staging
+# Allow search engine web crawlers (Googlebot, Bingbot, etc.)
 User-agent: *
-Disallow: /
+Allow: /
 
-# PRODUCTION INSTRUCTION:
-# When published to https://voteforporeddynarasimhareddy.com,
-# replace with:
-# User-agent: *
-# Allow: /
-# Sitemap: https://voteforporeddynarasimhareddy.com/sitemap.xml
+# Sitemap
+Sitemap: https://voteforporeddynarasimhareddy.com/sitemap.xml
+Sitemap: https://poreddynarasimhareddy.com/sitemap.xml
